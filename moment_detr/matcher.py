@@ -5,7 +5,6 @@ Modules to compute the matching cost and solve the corresponding LSAP.
 import torch
 from scipy.optimize import linear_sum_assignment
 from torch import nn
-import torch.nn.functional as F
 from moment_detr.span_utils import generalized_temporal_iou, span_cxw_to_xx
 
 
@@ -114,7 +113,6 @@ class HungarianMatcher(nn.Module):
             cost_giou = 0
 
         # Final cost matrix
-        # import ipdb; ipdb.set_trace()
         C = (
             self.cost_span * cost_span
             + self.cost_giou * cost_giou

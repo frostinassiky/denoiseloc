@@ -81,8 +81,7 @@ class PositionEmbeddingSine(nn.Module):
         ).flatten(
             2
         )  # (bsz, L, num_pos_feats*2)
-        # import ipdb; ipdb.set_trace()
-        return pos_x  # .permute(0, 2, 1)  # (bsz, num_pos_feats*2, L)
+        return pos_x
 
 
 class PositionEmbeddingLearned(nn.Module):
@@ -124,10 +123,7 @@ class PositionEmbeddingLearned(nn.Module):
 def build_position_encoding(args):
     N_steps = args.hidden_dim
     if args.position_embedding in ("v2", "sine"):
-        # TODO find a better way of exposing other arguments
         position_embedding = PositionEmbeddingSine(N_steps, normalize=True)
-    # elif args.position_embedding in ('v3', 'learned'):
-    #     position_embedding = PositionEmbeddingLearned(N_steps)
     else:
         raise ValueError(f"not supported {args.position_embedding}")
 

@@ -3,7 +3,7 @@ import json
 import zipfile
 import numpy as np
 import pickle
-from collections import OrderedDict, Counter
+from collections import OrderedDict
 import pandas as pd
 
 

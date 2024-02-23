@@ -13,14 +13,12 @@ Copy-paste from torch.nn.Transformer with modifications:
 """
 import copy
 import math
-from typing import Optional, List
 
 import torch
-from torch import nn, Tensor
+from torch import nn
 import torch.nn.functional as F
 
 from transformer import TransformerEncoderLayer, TransformerEncoder
-
 from lib.align1d.align import Align1DLayer
 
 
@@ -54,8 +52,6 @@ class DynamicHeadTime(nn.Module):
         dim_feedforward=2048,
         num_decoder_layers=6,
         use_dynamic_conv=True,
-        # normalize_before=args.pre_norm,
-        # return_intermediate_dec=True,
     ):
         super().__init__()
 
@@ -76,7 +72,7 @@ class DynamicHeadTime(nn.Module):
         num_heads = num_decoder_layers
         self.d_model = d_model
         self.head_series = _get_clones(rcnn_head, N=num_heads)
-        self.return_intermediate = True  # TODO ablation
+        self.return_intermediate = True
 
         # Gaussian random feature embedding layer for time
         self.d_model = d_model
@@ -89,10 +85,10 @@ class DynamicHeadTime(nn.Module):
         )
 
         # Init parameters.
-        self.use_focal = True  # TODO ablation
+        self.use_focal = True
         self.num_classes = num_classes
         if self.use_focal:
-            prior_prob = 0.01  # TODO ablation
+            prior_prob = 0.01
             self.bias_value = -math.log((1 - prior_prob) / prior_prob)
         self._reset_parameters()
 
@@ -110,13 +106,8 @@ class DynamicHeadTime(nn.Module):
                     else:
                         nn.init.constant_(p, self.bias_value)
 
-    @staticmethod
-    def _init_box_pooler(cfg, input_shape):
-
-        raise NotImplementedError
 
     def forward(self, features, init_bboxes, t, init_features):
-        # assert t shape (batch_size)
         time = self.time_mlp(t)
 
         inter_class_logits = []
@@ -161,8 +152,6 @@ class DynamicHead(nn.Module):
         num_decoder_layers=6,
         use_dynamic_conv=True,
         use_attention=True,
-        # normalize_before=args.pre_norm,
-        # return_intermediate_dec=True,
     ):
         super().__init__()
 
@@ -183,13 +172,13 @@ class DynamicHead(nn.Module):
         num_heads = num_decoder_layers
         self.d_model = d_model
         self.head_series = _get_clones(rcnn_head, N=num_heads)
-        self.return_intermediate = True  # TODO ablation
+        self.return_intermediate = True
 
         # Init parameters.
-        self.use_focal = True  # TODO ablation
+        self.use_focal = True
         self.num_classes = num_classes
         if self.use_focal:
-            prior_prob = 0.01  # TODO ablation
+            prior_prob = 0.01
             self.bias_value = -math.log((1 - prior_prob) / prior_prob)
         self._reset_parameters()
 
@@ -207,33 +196,8 @@ class DynamicHead(nn.Module):
                     else:
                         nn.init.constant_(p, self.bias_value)
 
-    @staticmethod
-    def _init_box_pooler(cfg, input_shape):
-
-        raise NotImplementedError
-
-        in_features = cfg.MODEL.ROI_HEADS.IN_FEATURES
-        pooler_resolution = cfg.MODEL.ROI_BOX_HEAD.POOLER_RESOLUTION
-        pooler_scales = tuple(1.0 / input_shape[k].stride for k in in_features)
-        sampling_ratio = cfg.MODEL.ROI_BOX_HEAD.POOLER_SAMPLING_RATIO
-        pooler_type = cfg.MODEL.ROI_BOX_HEAD.POOLER_TYPE
-
-        # If StandardROIHeads is applied on multiple feature maps (as in FPN),
-        # then we share the same predictors and therefore the channel counts must be the same
-        in_channels = [input_shape[f].channels for f in in_features]
-        # Check all channel counts are equal
-        assert len(set(in_channels)) == 1, in_channels
-
-        box_pooler = ROIPooler(
-            output_size=pooler_resolution,
-            scales=pooler_scales,
-            sampling_ratio=sampling_ratio,
-            pooler_type=pooler_type,
-        )
-        return box_pooler
 
     def forward(self, features, init_bboxes, init_features):
-
         inter_class_logits = []
         inter_pred_bboxes = []
 
@@ -242,7 +206,6 @@ class DynamicHead(nn.Module):
 
         init_features = init_features[None].repeat(1, bs, 1)
         proposal_features = init_features.clone()
-        # print('proposal_features', proposal_features.shape)
 
         for rcnn_head in self.head_series:
             class_logits, pred_bboxes, proposal_features = rcnn_head(
@@ -326,7 +289,7 @@ class RCNNHead(nn.Module):
         self.reg_module = nn.ModuleList(reg_module)
 
         # pred.
-        self.use_focal = True  # TODO ablation
+        self.use_focal = True
         if self.use_focal:
             self.class_logits = nn.Linear(d_model, num_classes)
         else:
@@ -340,10 +303,7 @@ class RCNNHead(nn.Module):
         :param bboxes: (N, nr_boxes, 2)
         :param pro_features: (N, nr_boxes, d_model)
         """
-
         N, nr_boxes = bboxes.shape[:2]
-        # print('pro_features', pro_features.shape) # [1, 930, 256]
-        # print('bboxes', bboxes.shape) # [32, 10, 2]
 
         # roi_feature.
         proposal_boxes = list()
@@ -360,8 +320,6 @@ class RCNNHead(nn.Module):
 
         #  (49, N * nr_boxes, self.d_model)
         roi_features = roi_features.permute(2, 0, 1)
-        # roi_features = pooler(features, proposal_boxes)
-        # roi_features = roi_features.view(N * nr_boxes, self.d_model, -1).permute(2, 0, 1)
 
         # self_att.
         if self.use_attention:
@@ -386,7 +344,6 @@ class RCNNHead(nn.Module):
             roi_features_mean = roi_features.permute(1, 2, 0).mean(
                 dim=-1, keepdim=False
             )  #  (N * nr_boxes, self.d_model,1)
-            # roi_features_mean = roi_features_mean.view(N, nr_boxes, self.d_model) ablation
             roi_features_mean = roi_features_mean.view(*pro_features.shape)
             pro_features_concate = torch.cat((roi_features_mean, pro_features), -1)
             obj_features = self.activation(self.linear_align(pro_features_concate))
@@ -462,9 +419,9 @@ class DynamicConv(nn.Module):
     def __init__(self):
         super().__init__()
 
-        self.hidden_dim = 256  # TODO ablation
-        self.dim_dynamic = 64  # TODO ablation
-        self.num_dynamic = 2  # TODO ablation
+        self.hidden_dim = 256
+        self.dim_dynamic = 64
+        self.num_dynamic = 2
         self.num_params = self.hidden_dim * self.dim_dynamic
         self.dynamic_layer = nn.Linear(
             self.hidden_dim, self.num_dynamic * self.num_params
@@ -475,7 +432,7 @@ class DynamicConv(nn.Module):
 
         self.activation = nn.ReLU(inplace=True)
 
-        pooler_resolution = 14  # TODO ablation
+        pooler_resolution = 14
         num_output = self.hidden_dim * pooler_resolution  # 1d case
         self.out_layer = nn.Linear(num_output, self.hidden_dim)
         self.norm3 = nn.LayerNorm(self.hidden_dim)
@@ -509,7 +466,6 @@ class DynamicConv(nn.Module):
         features = self.out_layer(features)  # (M, 256) -> become proposal
         features = self.norm3(features)
         features = self.activation(features)
-
         return features
 
 
@@ -552,7 +508,7 @@ def build_head(args=None):
             nhead=args.nheads,
             dim_feedforward=args.dim_feedforward,
             num_decoder_layers=args.dec_layers,
-            num_classes=2,  # foreground and backgorund
+            num_classes=2,  # foreground and background
         )
 
 
@@ -561,10 +517,8 @@ if __name__ == "__main__":
     d_head = d_head.cuda()
     B, T, C = 4, 10, 256
     N = 300  # n_prop
-    # features = [torch.randn(B,T,C),torch.randn(B,T,C)]
     features = [torch.randn(B, C, T).cuda()]
     init_bboxes = torch.rand(B, N, 2)
-    # init_bboxes = [[0,2,5] for _ in range(N)] + [[1,3,7] for _ in range(N)]
     init_bboxes = torch.tensor(init_bboxes).cuda().float()
     init_features = torch.randn(N, C).cuda()
     class_logits, pred_bboxes = d_head(features, init_bboxes, init_features)

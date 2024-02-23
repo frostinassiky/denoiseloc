@@ -1,13 +1,12 @@
 import pprint
-from tqdm import tqdm, trange
+from tqdm import tqdm
 import numpy as np
 import os
-from collections import OrderedDict, defaultdict
+from collections import defaultdict
 from utils.basic_utils import AverageMeter
 
 import torch
 import torch.nn.functional as F
-import torch.backends.cudnn as cudnn
 from torch.utils.data import DataLoader
 
 from moment_detr.config import TestOptions
@@ -47,7 +46,6 @@ def post_processing_mr_nms(mr_res, nms_thd, max_before_nms, max_after_nms):
 
 
 def eval_epoch_post_processing(submission, opt, gt_data, save_submission_filename):
-    # IOU_THDS = (0.5, 0.7)
     logger.info("Saving/Evaluating before nms results")
     submission_path = os.path.join(opt.results_dir, save_submission_filename)
     save_jsonl(submission, submission_path)
@@ -80,7 +78,7 @@ def eval_epoch_post_processing(submission, opt, gt_data, save_submission_filenam
         )
         save_jsonl(submission_after_nms, submission_nms_path)
         if opt.eval_split_name == "val":
-            print("evaluting predicitions")
+            print("evaluating predictions")
             metrics_nms = eval_submission(
                 submission_after_nms,
                 gt_data,

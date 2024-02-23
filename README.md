@@ -12,7 +12,7 @@
 This repo host the original code of our DenoiseLoc work, along with a copy of QVHighlights dataset for moment retrieval and highlight detections.
 DenoiseLoc is an encoder-decoder model to tackle the video activity localization problem from a denoising perspective. During training, a set of action spans is randomly generated from the ground truth with a controlled noise scale. The inference reverses this process by boundary denoising, allowing the localizer to predict activities with precise boundaries and resulting in faster convergence speed. This code works for QV-Highlights dataset, where we observe a gain of +12.36% average mAP over the baseline.
 
-The code is developed on top of [Moment-DETR](https://github.com/jayleicn/moment_detr), we keep minimal changes for simplicity but make necessary adaption for clarity. We keep the official data and evaluation tools in folders *data* and *standalone_eval*, respectively.
+The code is developed on top of [Moment-DETR](https://github.com/jayleicn/moment_detr), we keep minimal changes for simplicity but make necessary adaption for clarity. We keep the official data and evaluation tools in folders `data` and `standalone_eval`, respectively.
 
 ![teaser](./teaser.jpg)
 
@@ -41,12 +41,14 @@ cd moment_detr
 
 1. Prepare feature files
 
-Download [moment_detr_features.tar.gz](https://drive.google.com/file/d/1Hiln02F1NEpoW8-iPZurRyi-47-W2_B9/view?usp=sharing) (8GB),
+Download feature file (8GB) `moment_detr_features.tar.gz`. The instruction can be found from [Moment-DETR](https://github.com/jayleicn/moment_detr). Then
 extract it under project root directory:
 ```
 tar -xf path/to/moment_detr_features.tar.gz
 ```
 The features are extracted using Linjie's [HERO_Video_Feature_Extractor](https://github.com/linjieli222/HERO_Video_Feature_Extractor).
+
+If have any issue with the feature file, please email us for alternative solutions.
 
 2. Install dependencies.
 
@@ -58,7 +60,7 @@ conda create --name denoise_loc python=3.7
 # activate env
 conda activate denoise_loc
 # install pytorch with CUDA 11.6
-conda install pytorch torchvision torchaudio pytorch-cuda=11.6 -c pytorch -c nvidia
+conda install pytorch torchvision pytorch-cuda=11.6 -c pytorch -c nvidia
 # install other python packages
 pip install tqdm ipython easydict tensorboard tabulate scikit-learn pandas
 # compile and install nms1d and align1d
@@ -98,7 +100,7 @@ Since our project is developed from [Moment-DETR](https://github.com/jayleicn/mo
 
 
 ## Acknowledgement
-This code is based on [Moment-DETR](https://github.com/jayleicn/moment_detr), and the implementation is refered from [G-TAD](https://github.com/frostinassiky/gtad) and [DiffusionDet](https://github.com/ShoufaChen/DiffusionDet). We thank the authors for their awesome open-source contributions.
+This code is based on [Moment-DETR](https://github.com/jayleicn/moment_detr), and the implementation is referred from [G-TAD](https://github.com/frostinassiky/gtad) and [DiffusionDet](https://github.com/ShoufaChen/DiffusionDet). We thank the authors for their awesome open-source contributions.
 
 ## LICENSE
 The annotation files are under [CC BY-NC-SA 4.0](https://creativecommons.org/licenses/by-nc-sa/4.0/) license, see [./data/LICENSE](data/LICENSE). All the code are under [MIT](https://opensource.org/licenses/MIT) license, see [LICENSE](./LICENSE).

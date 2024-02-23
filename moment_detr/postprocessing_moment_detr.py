@@ -1,8 +1,4 @@
-import pprint
-import numpy as np
 import torch
-from utils.basic_utils import load_jsonl
-from standalone_eval.eval import eval_submission
 from tqdm import tqdm
 
 
@@ -95,8 +91,6 @@ class PostProcessorDETR:
         Returns:
 
         """
-        # import ipdb;
-        # ipdb.set_trace()
         if move_method == "left":
             windows[row_selector, 1] = windows[row_selector, 0] + new_length
         elif move_method == "right":

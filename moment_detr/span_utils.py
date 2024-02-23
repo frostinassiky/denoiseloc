@@ -116,5 +116,4 @@ def generalized_temporal_iou(spans1, spans2):
     left = torch.min(spans1[:, None, 0], spans2[:, 0])  # (N, M)
     right = torch.max(spans1[:, None, 1], spans2[:, 1])  # (N, M)
     enclosing_area = (right - left).clamp(min=0)  # (N, M)
-
     return iou - (enclosing_area - union) / enclosing_area

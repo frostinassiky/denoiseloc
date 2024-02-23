@@ -215,8 +215,8 @@ class MomentDenoise(nn.Module):
                            (center_x, width). These values are normalized in [0, 1],
                            relative to the size of each individual image (disregarding possible padding).
                            See PostProcess for information on how to retrieve the unnormalized bounding box.
-           - "aux_outputs": Optional, only returned when auxilary losses are activated. It is a list of
-                            dictionnaries containing the two above keys for each decoder layer.
+           - "aux_outputs": Optional, only returned when auxiliary losses are activated. It is a list of
+                            dictionaries containing the two above keys for each decoder layer.
         """
         # projection
         src_vid = self.input_vid_proj(src_vid)  # -> 256
@@ -259,9 +259,7 @@ class MomentDenoise(nn.Module):
         else:  # diffusion
             if self.training:
                 # prepare gt
-                targets, x_boxes, noises, t = self.prepare_targets(
-                    targets["span_labels"]
-                )
+                targets, x_boxes = self.prepare_targets(targets["span_labels"])
                 proposal_boxes = (x_boxes * video_length[:, None, None]).float()
             else:
                 x = torch.randn(
@@ -300,7 +298,6 @@ class MomentDenoise(nn.Module):
         sqrt_one_minus_alphas_cumprod_t = extract(
             self.sqrt_one_minus_alphas_cumprod, t, x_start.shape
         )
-
         return sqrt_alphas_cumprod_t * x_start + sqrt_one_minus_alphas_cumprod_t * noise
 
     def prepare_diffusion_concat(self, gt_boxes):
@@ -343,35 +340,19 @@ class MomentDenoise(nn.Module):
 
         diff_boxes = span_cxw_to_xx(x)
 
-        return diff_boxes, noise, t
+        return diff_boxes
 
     def prepare_targets(self, targets):
         new_targets = []
         diffused_boxes = []
-        noises = []
-        ts = []
         for targets_per_video in targets:
             target = {}
             gt_boxes = targets_per_video["spans"]  # normalized windows in cxw
-            d_boxes, d_noise, d_t = self.prepare_diffusion_concat(gt_boxes)
+            d_boxes = self.prepare_diffusion_concat(gt_boxes)
             diffused_boxes.append(d_boxes)
-            noises.append(d_noise)
-            ts.append(d_t)
-            # target["labels"] = 1 # always positive
-            target["boxes"] = gt_boxes  # .to(self.device)
-            # target["boxes_xyxy"] = targets_per_video.gt_boxes.tensor.to(self.device)
-            # target["image_size_xyxy"] = image_size_xyxy.to(self.device)
-            # image_size_xyxy_tgt = image_size_xyxy.unsqueeze(0).repeat(len(gt_boxes), 1)
-            # target["image_size_xyxy_tgt"] = image_size_xyxy_tgt.to(self.device)
-            # target["area"] = targets_per_video.gt_boxes.area().to(self.device)
+            target["boxes"] = gt_boxes
             new_targets.append(target)
-
-        return (
-            new_targets,
-            torch.stack(diffused_boxes),
-            torch.stack(noises),
-            torch.stack(ts),
-        )
+        return (new_targets, torch.stack(diffused_boxes))
 
 
 class SetCriterion(nn.Module):
@@ -434,8 +415,6 @@ class SetCriterion(nn.Module):
         tgt_spans = torch.cat(
             [t["spans"][i] for t, (_, i) in zip(targets, indices)], dim=0
         )  # (#spans, 2)
-        # print('src_spans',src_spans[:10])
-        # print('tgt_spans',tgt_spans[:10])
         if self.span_loss_type == "l1":
             loss_span = F.l1_loss(src_spans, tgt_spans, reduction="none")
             loss_giou = 1 - torch.diag(
@@ -627,7 +606,6 @@ class SetCriterion(nn.Module):
                     )
                     l_dict = {k + f"_{i}": v for k, v in l_dict.items()}
                     losses.update(l_dict)
-
         return losses
 
 
@@ -690,7 +668,7 @@ def build_model(args):
         nhead=args.nheads,
         dim_feedforward=args.dim_feedforward,
         num_decoder_layers=args.dec_layers,
-        num_classes=2,  # foreground and backgorund
+        num_classes=2,  # foreground and background
         use_dynamic_conv=args.use_dynamic_conv,
         use_attention=args.use_attention,
     )

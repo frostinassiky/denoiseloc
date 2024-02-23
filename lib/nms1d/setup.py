@@ -1,6 +1,6 @@
 import torch
 
-from setuptools import setup, Extension
+from setuptools import setup
 from torch.utils.cpp_extension import BuildExtension, CppExtension
 
 
