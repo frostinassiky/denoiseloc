@@ -1,5 +1,12 @@
 # DenoiseLoc
 
+[![PWC](https://img.shields.io/endpoint.svg?url=https://paperswithcode.com/badge/boundary-denoising-for-video-activity/video-grounding-on-qvhighlights)](https://paperswithcode.com/sota/video-grounding-on-qvhighlights?p=boundary-denoising-for-video-activity)
+
+[![PWC](https://img.shields.io/endpoint.svg?url=https://paperswithcode.com/badge/boundary-denoising-for-video-activity/video-grounding-on-mad)](https://paperswithcode.com/sota/video-grounding-on-mad?p=boundary-denoising-for-video-activity)
+
+
+
+
 [DenoiseLoc: Boundary Denoising for Video Activity Localization](https://arxiv.org/abs/2304.02934), ICLR 2023
 
 [Mengmeng Xu](https://mengmengxu.netlify.app/),
