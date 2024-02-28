@@ -14,7 +14,7 @@ DenoiseLoc is an encoder-decoder model to tackle the video activity localization
 
 The code is developed on top of [Moment-DETR](https://github.com/jayleicn/moment_detr). We keep minimal changes for simplicity but make necessary adaptions for clarity. We keep the official data and evaluation tools in folders `data` and `standalone_eval`, respectively.
 
-[<img src="./teaser.jpg" width="30" />](./teaser.jpg)
+[<img src="./teaser.jpg" width="400" />](./teaser.jpg)
 
 
 ## Table of Contents
